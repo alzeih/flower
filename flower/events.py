@@ -94,9 +94,12 @@ class Events(threading.Thread):
     def stop(self):
         if self.persistent:
             logger.debug("Saving state to '%s'...", self.db)
-            state = shelve.open(self.db)
-            state['events'] = self.state
-            state.close()
+            self.state.freeze_while(self._save)
+
+    def _save(self):
+        state = shelve.open(self.db)
+        state['events'] = self.state
+        state.close()
 
     def run(self):
         try_interval = 1
